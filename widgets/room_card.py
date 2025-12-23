@@ -13,7 +13,7 @@ class RoomCard(QtWidgets.QFrame):
         super().__init__(parent)
         self.is_on = False
         self._background_color = self.COLOR_OFF
-        self.from_ws = False  # 👈 flag to track if change came from WebSocket
+        self.from_ws = False  
         
         self.index = index
         self.worker = WSClient()
@@ -56,10 +56,10 @@ class RoomCard(QtWidgets.QFrame):
         
     def set_state(self, state: bool):
         """Update the toggle and color based on external data (e.g., from WebSocket)."""
-        self.from_ws = True  # 👈 mark that the change came from websocket
+        self.from_ws = True  
         self.toggle.setChecked(state)
         self._handle_toggle(state)
-        self.from_ws = False  # 👈 reset flag
+        self.from_ws = False  
 
 
     backgroundColor = Property(QColor, _get_background_color, _set_background_color)
@@ -84,7 +84,7 @@ class RoomCard(QtWidgets.QFrame):
         target_color = self.COLOR_ON if checked else self.COLOR_OFF
         label_color = self.LABEL_COLOR_ON if checked else self.LABEL_COLOR_OFF
         
-        # 👇 Only send if user triggered the toggle
+       
         if not self.from_ws:
             # msg = f"({self.index}, {checked})"
             msg = json.dumps({
@@ -96,4 +96,5 @@ class RoomCard(QtWidgets.QFrame):
             self.worker.send_message.emit(msg)
         
         self.title_label.setStyleSheet(f"color: {label_color.name()}; border: none;")
+
         self.animate_to(target_color)
