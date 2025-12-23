@@ -26,11 +26,9 @@ class ToastNotification(QtWidgets.QWidget):
         layout.addWidget(self.label)
         layout.setContentsMargins(0, 0, 0, 0)
         
-        # المؤقت لإخفاء الإشعار بعد مدة
         QtCore.QTimer.singleShot(duration, self.close)
     
     def show_near(self, parent_widget):
-        """يظهر الإشعار فوق نافذة معينة."""
         if parent_widget:
             geo = parent_widget.geometry()
             self.adjustSize()
@@ -111,7 +109,7 @@ class NFCCard(QtWidgets.QWidget):
                 
             }
             QPushButton::menu-indicator {
-                        image: none;  /* يخفي السهم */
+                        image: none;  
                         width: 0px;
             }
             QPushButton:hover {
@@ -360,7 +358,6 @@ class SecurityPage(QtWidgets.QWidget):
             self.add_card(label, text, f"{datetime.datetime.date(datetime.datetime.now())}", "None", id_from_db)
     
     def update_last_access_times(self):
-        """تحديث الوقت الظاهر على الكروت بناءً على الوقت الفعلي."""
         now = datetime.datetime.now()
         for card in self.cards:
             if card.last_access_time:
@@ -401,13 +398,11 @@ class SecurityPage(QtWidgets.QWidget):
         try:
             data = json.loads(msg)
             print(data)
-            # تأكد إن الرسالة تخص الـ security
             if data.get("type") == "security":
                 inner = data.get("data", {})
                 if inner.get("data_type") == "new_nfc":
                     nfc_num = str(inner.get("nfc_number"))
                     print(nfc_num)
-                    # ضيف الكارت الجديد
                     label = f"New User-{uuid.uuid4()}"
                     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     
@@ -418,7 +413,7 @@ class SecurityPage(QtWidgets.QWidget):
                     
                     self.add_card(label, nfc_num, f"{datetime.datetime.date(datetime.datetime.now())}", now, id_from_db)
                     
-                    print(f"🆕 New NFC received and added: {nfc_num}")
+                    print(f" New NFC received and added: {nfc_num}")
                 elif inner.get("data_type") == "access":
                     nfc_num = str(inner.get("nfc_number"))
                     
@@ -444,7 +439,7 @@ class SecurityPage(QtWidgets.QWidget):
                                 card.update_last_access(now)
                                 break
                             
-                        ToastNotification("Access Granted ✅", "#4CAF50", 3000, self).show_near(self)
+                        ToastNotification("Access Granted ", "#4CAF50", 3000, self).show_near(self)
 
                     else:
                         msg = json.dumps({
@@ -456,15 +451,16 @@ class SecurityPage(QtWidgets.QWidget):
                         })
                         self.worker.send_message.emit(msg)
                         
-                        ToastNotification("Access Denied ❌", "#F44336", 3000, self).show_near(self)
+                        ToastNotification("Access Denied ", "#F44336", 3000, self).show_near(self)
 
                 else:
                     pass
-                    # print("ℹ️ Unknown data_type in security:", inner.get("data_type"))
+                    # print(" Unknown data_type in security:", inner.get("data_type"))
             else:
-                # print("⚠️ Unknown message type:", data.get("type"))
+                # print(" Unknown message type:", data.get("type"))
                 pass
 
         except Exception as e:
-            # print("❌ Error while parsing message:", e)
+            # print(" Error while parsing message:", e)
+
             pass
