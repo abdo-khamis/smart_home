@@ -28,7 +28,7 @@ MFRC522 mfrc522{driver};         // Create MFRC522 instance
 unsigned long lastDashboardTime = 0;
 unsigned long lastTempTime = 0;
 const unsigned long dashboardInterval = 5000; // كل 5 ثواني يبعث dashboard
-const unsigned long tempInterval = 60000;     // كل 15 ثانية يبعث temp فقط
+const unsigned long tempInterval = 60000;     // كل 60 ثانية يبعث temp فقط
 
 int number_of_lights = 0;
 
@@ -85,7 +85,7 @@ void sendDashboardData() {
   serializeJson(doc, output);
   wsSmartHome.textAll(output);
 
-  Serial.println("📤 Sent Dashboard JSON: " + output);
+  Serial.println(" Sent Dashboard JSON: " + output);
 }
 
 void sendTempData() {
@@ -100,7 +100,7 @@ void sendTempData() {
   serializeJson(doc, output);
   wsSmartHome.textAll(output);
 
-  Serial.println("📤 Sent Temp JSON: " + output);
+  Serial.println(" Sent Temp JSON: " + output);
 }
 
 
@@ -121,12 +121,12 @@ void onSmartHomeWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *cli
       AwsFrameInfo *info = (AwsFrameInfo *)arg;
       if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
         String json = String((char *)data).substring(0, len);
-        Serial.println("📩 Received: " + json);
+        Serial.println(" Received: " + json);
 
         DynamicJsonDocument doc(256);
         DeserializationError error = deserializeJson(doc, json);
         if (error) {
-          Serial.println("❌ JSON parse error");
+          Serial.println(" JSON parse error");
           return;
         }
 
@@ -134,51 +134,21 @@ void onSmartHomeWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *cli
         if (type == "security_control") {
           String dataType = doc["data"]["data_type"];
 
-          // 🔹 الحالة الأولى: البرنامج طالب إضافة كارت جديد
           if (dataType == "add_request") {
-            Serial.println("🆕 Add request received, waiting for new card...");
-
+            Serial.println(" Add request received, waiting for new card...");
               waitingForNewCard = true;
-            // // استنى لما المستخدم يحط كارت جديد
-            // while (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial()) {
-            //   waitingForNewCard = true;
-            // }
-
-            // // اقرأ الكارت
-            // String cardID = "";
-            // for (byte i = 0; i < mfrc522.uid.size; i++) {
-            //   cardID += String(mfrc522.uid.uidByte[i], HEX);
-            // }
-            // cardID.toUpperCase();
-
-            // Serial.println("✅ Card successfully read!");
-            // Serial.println("💳 Card detected: " + cardID);
-
-            // // ابعت للـ GUI JSON بالكارت الجديد
-            // DynamicJsonDocument sendDoc(256);
-            // sendDoc["type"] = "security";
-            // JsonObject data = sendDoc.createNestedObject("data");
-            // data["data_type"] = "new_nfc";
-            // data["nfc_number"] = cardID;
-
-            // String output;
-            // serializeJson(sendDoc, output);
-            // wsSmartHome.textAll(output);
-
-            // Serial.println("📤 Sent to GUI: " + output);
           }
 
-          // 🔹 الحالة الثانية: طلب دخول عادي
           else if (dataType == "access_request") {
             int response = doc["data"]["response"];
             if (response == 200) {
-              Serial.println("✅ Access Granted — open relay");
+              Serial.println(" Access Granted — open relay");
               doorServo.write(0);
               // digitalWrite(14, HIGH);
               doorOpen = true;
               doorTime = millis();
             } else if (response == 400) {
-              Serial.println("🚫 Access Denied");
+              Serial.println(" Access Denied");
             }
           }
         }else if (type == "light_control") {
@@ -190,15 +160,15 @@ void onSmartHomeWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *cli
                 int pin = String(kv.key().c_str()).toInt();
                 bool state = kv.value().as<int>();
 
-                bool prev = lightStates[pin];   // الحالة القديمة
-                lightStates[pin] = state;       // تحديث الحالة
+                bool prev = lightStates[pin];     
+                lightStates[pin] = state;         
 
                 digitalWrite(pin, state ? HIGH : LOW);
 
-                if (!prev && state) number_of_lights++;   // OFF → ON
-                if (prev && !state) number_of_lights--;   // ON → OFF
+                if (!prev && state) number_of_lights++;   
+                if (prev && !state) number_of_lights--;   
 
-                Serial.printf("💡 Light %d -> %s | Total: %d\n",
+                Serial.printf(" Light %d -> %s | Total: %d\n",
                               pin, state ? "ON" : "OFF", number_of_lights);
             }
         } else if (type== "emergency"){
@@ -254,7 +224,7 @@ void setup(void) {
   dht11.begin();
 
   mfrc522.PCD_Init();    // Init MFRC522 board.
-  MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);	// Show details of PCD - MFRC522 Card Reader details.
+  MFRC522Debug::PCD_DumpVersionToSerial(mfrc522, Serial);	
 	Serial.println(F("Scan PICC to see UID"));
 
 
